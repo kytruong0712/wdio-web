@@ -50,7 +50,14 @@ exports.config = {
     // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
-        browserName: 'chrome'
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: [
+                '--disable-blink-features=AutomationControlled', // Hides WebDriver detection
+                '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"',
+                '--start-maximized' // Run in non-headless mode
+            ]
+        }
     }],
 
     //
@@ -109,7 +116,7 @@ exports.config = {
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
     framework: 'cucumber',
-    
+
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -252,8 +259,14 @@ exports.config = {
      * @param {number}             result.duration  duration of scenario in milliseconds
      * @param {object}             context          Cucumber World object
      */
-    // afterStep: function (step, scenario, result, context) {
-    // },
+    afterStep: async function (step, scenario, result) {
+        if (!result.passed) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            const screenshotPath = `./screenshots/${scenario.name}-${timestamp}.png`;
+            await browser.saveScreenshot(screenshotPath);
+            console.log(`📸 Screenshot captured: ${screenshotPath}`);
+        }
+    }
     /**
      *
      * Runs after a Cucumber Scenario.
@@ -274,7 +287,7 @@ exports.config = {
      */
     // afterFeature: function (uri, feature) {
     // },
-    
+
     /**
      * Runs after a WebdriverIO command gets executed
      * @param {string} commandName hook command name
